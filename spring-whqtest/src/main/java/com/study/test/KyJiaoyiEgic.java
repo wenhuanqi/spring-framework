@@ -16,10 +16,10 @@ package com.study.test;
 public class KyJiaoyiEgic {
 	private static final int nextMothTotalCash = 210000; // 上个月金额，用于跨月与当月
 	private static final int curInitMothTotalCash = 280000; // 当前月初始金额，用于跨月与当月
-	private static final int curRealTotalCash = 330000; // 当前账户实际金额，用于跨月
+	private static final int curRealTotalCash = 270000; // 当前账户实际金额，用于跨月
 	private static final double stopLoss = 0.02; //账户总止损,不会变化
 	private static double acceptAmplitude = 0.06; //可接受震动幅度，基金，可以定义下跌8%，震荡7%，上涨6%。这是一个要判断的指标 TODO
-	private static double singleLoss = acceptAmplitude + 0.01; // 单只接受振幅，后面常数越大，持仓越分散。（行情不好的时候分散，行情好集中 0(集中),0.1（震荡）,0.2（下跌））TODO
+	private static double singleLoss = acceptAmplitude + 0.04; // 单只接受振幅，后面常数越大，持仓越分散。（行情不好的时候分散，行情好集中 0.1（上涨）,0.4（震荡)0.7（震荡）TODO
 
 	public static void main(String[] args) {
 		Type type = Type.KY; // 包括月内交易，跨越交易
