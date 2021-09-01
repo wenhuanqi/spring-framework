@@ -14,78 +14,74 @@ package com.study.test;
  * @create: 2021-08-29 14:09
  **/
 public class KyJiaoyiEgic {
-	private static final int nextMothTotalCash = 210000; // 上个月金额，用于跨月与当月
-	private static final int curInitMothTotalCash = 280000; // 当前月初始金额，用于跨月与当月
-	private static final int curRealTotalCash = 270000; // 当前账户实际金额，用于跨月
+	private static final int nextInitMothTotalCash = 206000; // 上个月金额，用于跨月与当月
+	private static final int curInitMothTotalCash = 230000; // 当前月初始金额，用于跨月与当月
+	private static final int curRealTotalCash = 220000; // 当前账户实际金额，用于跨月
 	private static final double stopLoss = 0.02; //账户总止损,不会变化
 	private static double acceptAmplitude = 0.06; //可接受震动幅度，基金，可以定义下跌8%，震荡7%，上涨6%。这是一个要判断的指标 TODO
-	private static double singleLoss = acceptAmplitude + 0.04; // 单只接受振幅，后面常数越大，持仓越分散。（行情不好的时候分散，行情好集中 0.1（上涨）,0.4（震荡)0.7（震荡）TODO
+	private static double singleLoss = acceptAmplitude + 0.01; // 单只接受振幅，后面常数越大，持仓越分散。（行情不好的时候分散，行情好集中 0.1（上涨）,0.4（震荡)0.7（震荡）TODO
+	private static double dyYuLiuPer = 0.3; // 当月调整预留平滑持仓利润,不会变化 TODO
+	private static double kyYuLiuPer = 0.1; // 跨月调整预留平滑持仓利润,不会变化 TODO
+	private static double dyLessCost = 0.1; // 当月调整的最小持有仓位参数
 
 	public static void main(String[] args) {
-		Type type = Type.KY; // 包括月内交易，跨越交易
-		// 需要得出的结果是，仓位，需要买入多少只，每只的最大金额。止损金额就算
-		if (type.equals(Type.KY)) {
-			System.out.println("交易类型：" + (type.equals("ky") ? "跨月调整" : "当月调整"));
-			KY.printKy();
-		} else {
-			System.out.println("交易类型：" + (type.equals("ky") ? "跨月调整" : "当月调整"));
-			DY.printDy();
-		}
-	}
-
-	private enum Type {
-		KY, // 跨月计算
-		DY  //当月计算
+		DY.printDy();
 	}
 
 	private static class DY {
-		private static double dyYuLiuPer = 0.5; // 当月调整预留平滑持仓利润,不会变化
-		private static double dyLessCost = 0.1; // 当月调整的最小持有仓位参数
-
 		private static void printDy() {
+			System.out.println("--------------------账户情况------------------");
+			System.out.println("上月总金额：" + nextInitMothTotalCash);
 			System.out.println("当月初始总金额：" + curInitMothTotalCash);
 			System.out.println("当前账户总金额：" + curRealTotalCash);
-			int stopLossCashFix = calcStopLossFixDy(); // 月内固定止损金额计算
-			System.out.println("固定止损后总金额：" + (curInitMothTotalCash - stopLossCashFix));
-			System.out.println("固定止损金额：" + stopLossCashFix);
-			int stopLossCash = calcStopLossDy(stopLossCashFix); // 止损金额计算
-			System.out.println("剩余止损金额：" + stopLossCash);
-			int costCash = costCashDy(stopLossCash); //可以持有的金额计算
-			System.out.println("可以持有总金额：" + costCash);
-			int costCashPerOne = costCashPerOne(costCash);
-			System.out.println("每只最多可以持有总金额：" + costCashPerOne);
-			int costNum = costNum(costCash, costCashPerOne);
-			System.out.println("最少需要持有只数：" + costNum);
-			int stopLossVal = stopLossVal(stopLossCash);
-			System.out.println("每一只最大可以亏损额度：" + stopLossVal);
+			int loss = (curRealTotalCash - curInitMothTotalCash);
+			System.out.println((loss >= 0 ? "当前盈利：" : "当前亏损：") + loss);
+			System.out.println("--------------------固定止损------------------");
+			int stopLossCashFix = KY.calcStopLoss(); // 月内固定止损金额计算
+			{
+				System.out.println("最大可亏损金额：" + stopLossCashFix);
+				System.out.println("止损后总金额*：" + (curInitMothTotalCash - stopLossCashFix));
+				int costCash = KY.costCash(stopLossCashFix); //可以持有的金额计算
+				System.out.println("可持有总金额*：" + costCash);
+				int costCashPerOne = KY.costCashPerOne(stopLossCashFix);
+				System.out.println("每只可持有金额*：" + costCashPerOne);
+				int costNum = KY.costNum(costCash, costCashPerOne);
+				System.out.println("最小持有只数：" + costNum);
+				int stopLossVal = KY.stopLossVal(stopLossCashFix);
+				System.out.println("每只最大亏损额度：" + stopLossVal);
+			}
+			System.out.println("--------------------剩余动态止损------------------");
+			{
+				// 当月动态变化
+				int stopLossCash = calcStopLossDy(stopLossCashFix); // 止损金额计算
+				System.out.println("最大可亏损金额：" + stopLossCash);
+				System.out.println("止损后总金额*：" + +(curRealTotalCash - stopLossCash));
+
+				int costCash = costCashDy(stopLossCash); //可以持有的金额计算
+				System.out.println("可持有总金额*：" + costCash);
+				int costCashPerOne = costCashPerOne(costCash);
+				System.out.println("每只可持有金额*：" + costCashPerOne);
+				int costNum = costNum(costCash, costCashPerOne);
+				System.out.println("最小持有只数：" + costNum);
+				int stopLossVal = stopLossVal(stopLossCash);
+				System.out.println("每只最大亏损额度：" + stopLossVal);
+			}
+
 		}
 
-		private static int calcStopLossFixDy() { // 止损现金计算
-			int liRun = curInitMothTotalCash - nextMothTotalCash;
-			int stopLossCash;
-			// 跨月交易
-			if (liRun > 0) {
-				stopLossCash = (int) (liRun * dyYuLiuPer + curInitMothTotalCash * (stopLoss));
-				int all = (int) (stopLossCash / acceptAmplitude);
-				if (all > curInitMothTotalCash) {
-					stopLossCash = (int) (curInitMothTotalCash * acceptAmplitude);
-				}
-			} else {
-				stopLossCash = (int) (curInitMothTotalCash * (stopLoss));
-			}
-			return stopLossCash;
-		}
 
 		private static int calcStopLossDy(int stopLossCashFix) { // 止损现金计算
 			int liRun = curRealTotalCash - curInitMothTotalCash;
-
-			int stopLossCash = stopLossCashFix + liRun;
-			if (stopLossCash >= stopLossCashFix) { //表示有盈利
+			int stopLossCash;
+			if (liRun > 0) { //表示有盈利
+				stopLossCash = stopLossCashFix + (int) (liRun * dyYuLiuPer);
 				// 这里要计算一下剩余止损金额，维持安全线
 				int all = (int) (stopLossCash / acceptAmplitude);
 				if (all > curRealTotalCash) {
 					stopLossCash = (int) (curRealTotalCash * acceptAmplitude);
 				}
+			} else {
+				stopLossCash = stopLossCashFix + liRun;
 			}
 			return stopLossCash;
 		}
@@ -141,24 +137,6 @@ public class KyJiaoyiEgic {
 	}
 
 	private static class KY { //在一定周期重新计算（通常是跨月）
-		private static double kyYuLiuPer = 0.3; // 跨月预留平滑持仓利润,不会变化
-
-		private static void printKy() {
-			System.out.println("上月总金额：" + nextMothTotalCash);
-			System.out.println("实际总金额：" + curInitMothTotalCash);
-			int stopLossCash = calcStopLoss(); // 止损金额计算
-			System.out.println("止损后总金额：" + (curInitMothTotalCash - stopLossCash));
-			System.out.println("当月硬止损金额：" + stopLossCash);
-			int costCash = costCash(stopLossCash); //可以持有的金额计算
-			System.out.println("可以持有总金额：" + costCash);
-			int costCashPerOne = costCashPerOne(stopLossCash);
-			System.out.println("每只最多可以持有总金额：" + costCashPerOne);
-			int costNum = costNum(costCash, costCashPerOne);
-			System.out.println("最少需要持有只数：" + costNum);
-			int stopLossVal = stopLossVal(stopLossCash);
-			System.out.println("每一只最大亏损额度：" + stopLossVal);
-		}
-
 		/**
 		 * 总止损额度
 		 * 规则：
@@ -171,7 +149,7 @@ public class KyJiaoyiEgic {
 		 * @return
 		 */
 		private static int calcStopLoss() {
-			int liRun = curInitMothTotalCash - nextMothTotalCash;
+			int liRun = curInitMothTotalCash - nextInitMothTotalCash;
 			int stopLossCash;
 			// 跨月交易
 			if (liRun > 0) {
