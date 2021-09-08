@@ -15,11 +15,11 @@ package com.study.test;
  **/
 public class KyJiaoyiEgic {
 	private static final int nextInitMothTotalCash = 206000; // 上个月金额，用于跨月与当月
-	private static final int curInitMothTotalCash = 230000; // 当前月初始金额，用于跨月与当月
-	private static final int curRealTotalCash = 220000; // 当前账户实际金额，用于跨月
+	private static final int curInitMothTotalCash = 206000; // 当前月初始金额，用于跨月与当月
+	private static final int curRealTotalCash = 208500; // 当前账户实际金额，用于跨月
 	private static final double stopLoss = 0.02; //账户总止损,不会变化
 	private static double acceptAmplitude = 0.06; //可接受震动幅度，基金，可以定义下跌8%，震荡7%，上涨6%。这是一个要判断的指标 TODO
-	private static double singleLoss = acceptAmplitude + 0.01; // 单只接受振幅，后面常数越大，持仓越分散。（行情不好的时候分散，行情好集中 0.1（上涨）,0.4（震荡)0.7（震荡）TODO
+	private static double singleLoss = acceptAmplitude + 0.01; // 0.1,0.4,0.7 建仓要分散，趋势确定（那些先反转）后慢慢集中 TODO
 	private static double dyYuLiuPer = 0.3; // 当月调整预留平滑持仓利润,不会变化 TODO
 	private static double kyYuLiuPer = 0.1; // 跨月调整预留平滑持仓利润,不会变化 TODO
 	private static double dyLessCost = 0.1; // 当月调整的最小持有仓位参数
